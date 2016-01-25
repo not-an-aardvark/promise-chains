@@ -1,0 +1,29 @@
+{
+  "name": "promise-chains",
+  "version": "0.1.0",
+  "description": "A wrapper to to allow easy synchronous manipulation of Promises",
+  "main": "index.js",
+  "scripts": {
+    "test": "npm test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/not-an-aardvark/promise-chains.git"
+  },
+  "keywords": [
+    "promise",
+    "chain",
+    "proxy",
+    "es6",
+    "es2015"
+  ],
+  "author": "not-an-aardvark",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/not-an-aardvark/promise-chains/issues"
+  },
+  "homepage": "https://github.com/not-an-aardvark/promise-chains#readme",
+  "dependencies": {
+    "harmony-reflect": "^1.4.2"
+  }
+}
