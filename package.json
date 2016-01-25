@@ -3,9 +3,6 @@
   "version": "0.1.0",
   "description": "A wrapper to to allow easy synchronous manipulation of Promises",
   "main": "index.js",
-  "scripts": {
-    "test": "npm test"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/not-an-aardvark/promise-chains.git"
