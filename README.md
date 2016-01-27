@@ -42,7 +42,7 @@ var result = wrap(example_promise).parse_somehow().do_some_other_async_operation
 $ npm install promise-chains
 ```
 
-Note: `promise-chains` uses thes ES2015 `Proxy` object, which is currently not included in the Node runtime by default. To use it, you will have to use Node's --harmony-proxies flag. (e.g. instead of using `node yourProject.js`, use `node --harmony-proxies yourProject.js`).
+Note: `promise-chains` uses the ES2015 `Proxy` object, which is currently not included in the Node runtime by default. To use it, you will have to use Node's --harmony-proxies flag. (e.g. instead of using `node yourProject.js`, use `node --harmony-proxies yourProject.js`).
 
 Other things to note:
 
