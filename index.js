@@ -34,7 +34,7 @@ let handlers = {
 });
 
 function wrap (target) {
-  if (typeof target === 'object' && target.constructor.name === 'Promise') {
+  if (typeof target === 'object' && target !== null && target.constructor.name === 'Promise') {
     // The target needs to be stored internally as a function, so that it can use the `apply` and `construct` handlers.
     return new Proxy(() => (target), handlers);
   }
