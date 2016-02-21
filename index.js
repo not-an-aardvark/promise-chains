@@ -20,7 +20,7 @@ let handlers = {
     // If the Promise library allows synchronous inspection (bluebird, etc.), ensure that properties of resolved
     // Promises are also resolved immediately.
     if (target().isFulfilled && target().isFulfilled() && typeof target().value === 'function') {
-      return target().constructor.resolve(target().value()[property]);
+      return wrap(target().constructor.resolve(target().value()[property]));
     }
     // Otherwise, return a promise for that property.
     // Store it in the cache so that subsequent references to that property will return the same promise.
