@@ -4,7 +4,7 @@ let Reflect = require('harmony-reflect');
 let handlers = {
   get: (target, property, receiver) => {
     if (property === 'inspect') {
-      return () => ('[wrapped Promise]');
+      return () => ('[chainable Promise]');
     }
     if (property === '_raw') {
       return target();
@@ -16,6 +16,11 @@ let handlers = {
     // If the property has a value in the cache, use that value.
     if (target()._promise_chain_cache.hasOwnProperty(property)) {
       return target()._promise_chain_cache[property];
+    }
+    // If the Promise library allows synchronous inspection (bluebird, etc.), ensure that properties of resolved
+    // Promises are also resolved immediately.
+    if (target().isFulfilled && target().isFulfilled() && typeof target().value === 'function') {
+      return target().constructor.resolve(target().value()[property]);
     }
     // Otherwise, return a promise for that property.
     // Store it in the cache so that subsequent references to that property will return the same promise.
@@ -40,9 +45,8 @@ let handlers = {
 };
 
 // Make sure all other references to the proxied object refer to the promise itself, not the function wrapping it
-['getPrototypeOf', 'setPrototypeOf', 'isExtensible', 'preventExtensions', 'getOwnPropertyDescriptor',
-'defineProperty', 'has', 'set', 'deleteProperty', 'enumerate', 'ownKeys'].forEach(handler => {
-  handlers[handler] = function (target) {
+Object.keys(Reflect).forEach(handler => {
+  handlers[handler] = handlers[handler] || function (target) {
     return Reflect[handler](target(), ...Array.prototype.slice.call(arguments, 1));
   };
 });
