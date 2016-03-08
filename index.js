@@ -48,7 +48,7 @@ if (typeof Proxy !== 'undefined') {
   };
 
   // Make sure all other references to the proxied object refer to the promise itself, not the function wrapping it
-  Object.keys(Reflect).forEach(handler => {
+  Reflect.ownKeys(Reflect).forEach(handler => {
     handlers[handler] = handlers[handler] || function (target) {
       return Reflect[handler](target(), ...Array.prototype.slice.call(arguments, 1));
     };
