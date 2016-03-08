@@ -1,4 +1,4 @@
-# promise-chains
+# promise-chains [![Build Status](https://travis-ci.org/not-an-aardvark/promise-chains.svg?branch=master)](https://travis-ci.org/not-an-aardvark/promise-chains)
 
 `promise-chains` is a simple wrapper function for JavaScript Promises which allows them to be easily manipulated using synchronous syntax.
 
