@@ -2,7 +2,7 @@
 
 `promise-chains` is a simple wrapper function for JavaScript Promises which allows them to be easily manipulated using synchronous syntax.
 
-With normal syntax, one might write:
+Normally, one might write:
 
 ```javascript
 var foo = promise_for_some_timeconsuming_operation;
