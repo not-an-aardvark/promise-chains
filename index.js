@@ -12,9 +12,17 @@ if (typeof Proxy !== 'undefined') {
       if (property === '_raw') {
         return target();
       }
-      // If the Promise itself has the property ('then', 'catch', etc.), return the property itself, bound to the target
+      // If the Promise itself has the property ('then', 'catch', etc.), return the property itself, bound to the target.
+      // However, wrap the result of calling this function. This allows wrappedPromise.then(something) to also be wrapped.
       if (property in target()) {
-        return target()[property].bind(target());
+        return new Proxy(target()[property].bind(target()), {apply: function () {
+          // Relying on the `arguments` object isn't ideal, but doing something like Reflect.apply(...arguments) leaks the
+          // `arguments` object from this function and and disables v8's optimization, so using indices is the better way to
+          // handle it. When rest parameters are usable without a runtime flag, it'll be possible to replace this with
+          // `function(...args) { return wrap(Reflect.apply(...args)) }`
+          return wrap(Reflect.apply(arguments[0], arguments[1], arguments[2]));
+        }});
+        return wrap(target()[property].bind(target()));
       }
       // If the property has a value in the cache, use that value.
       if (target()._promise_chain_cache.hasOwnProperty(property)) {
@@ -54,9 +62,12 @@ if (typeof Proxy !== 'undefined') {
     };
   });
 }
+
 function wrap (target) {
   if (typeof target === 'object' && target !== null && target.constructor.name === 'Promise' && typeof Proxy !== 'undefined') {
     // The target needs to be stored internally as a function, so that it can use the `apply` and `construct` handlers.
+    // (At the moment, v8 actually allows non-functions to use the `apply` trap, but that goes against the ES2015 spec. Also,
+    // that behavior throws errors on any browser other than Chrome.)
     target._promise_chain_cache = {};
     return new Proxy(() => (target), handlers);
   }

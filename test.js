@@ -58,4 +58,10 @@ describe('promise-chains', () => {
   it('returns the same wrapped promise on multiple references to the same property', () => {
     expect(wrapped.unnecessarily_long_property_name).to.equal(wrapped.unnecessarily_long_property_name);
   });
+  it('returns a wrapped promise after a .then chain', done => {
+    wrapped.then(res => res).regular_property.then(result => {
+      expect(result).to.equal('value1');
+      done();
+    }).catch(done);
+  });
 });
