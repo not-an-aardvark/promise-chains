@@ -52,14 +52,16 @@ if (typeof Proxy !== 'undefined') {
         throw new TypeError(`Promise chain rejection: Attempted to call ${results[0]} which is not a function.`);
       }));
     },
-    construct: (target, args) => (wrap(target().then(result => (wrap(new result(...args))))))
+    construct: (target, args) => wrap(target().then(result => {
+      // Ideally this would just be `new result(...args)` or `Reflect.construct(result, args)`, but node 4 doesn't support
+      // the spread operator and harmony-reflect seems to have a bug with Reflect.construct().
+      return wrap(new (Function.prototype.bind.apply(result, args)));
+    }))
   };
 
   // Make sure all other references to the proxied object refer to the promise itself, not the function wrapping it
   Reflect.ownKeys(Reflect).forEach(handler => {
-    handlers[handler] = handlers[handler] || function (target) {
-      return Reflect[handler](target(), ...Array.prototype.slice.call(arguments, 1));
-    };
+    handlers[handler] = handlers[handler] || ((target, arg1, arg2, arg3) => Reflect[handler](target(), arg1, arg2, arg3));
   });
 }
 
