@@ -4,7 +4,7 @@
   "description": "A wrapper to to allow easy synchronous manipulation of Promises",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --harmony-proxies"
+    "test": "eslint . && mocha --harmony-proxies"
   },
   "repository": {
     "type": "git",
@@ -28,6 +28,8 @@
   },
   "devDependencies": {
     "chai": "^3.5.0",
+    "dirty-chai": "^1.2.2",
+    "eslint": "^2.4.0",
     "mocha": "^2.4.5"
   }
 }
