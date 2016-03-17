@@ -1,6 +1,6 @@
 {
   "name": "promise-chains",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "A wrapper to to allow easy synchronous manipulation of Promises",
   "main": "index.js",
   "scripts": {
