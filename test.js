@@ -35,6 +35,10 @@ describe('promise-chains', () => {
   it('can call a function and return a wrapped promise', Bluebird.coroutine(function *() {
     expect(yield wrapped.function_property('some text').returned_property).to.equal('some text');
   }));
+  it('returns a Promise of the same type when calling a wrapped Promise', () => {
+    const p = wrap(Bluebird.resolve(a => a))();
+    expect(p._raw).to.be.an.instanceof(Bluebird);
+  });
   it('wraps any promises that are returned from functions', Bluebird.coroutine(function *() {
     expect(yield wrapped.function_returning_promise_property({prop: 'value'}).prop).to.equal('value');
   }));
@@ -44,6 +48,9 @@ describe('promise-chains', () => {
   it('returns a wrapped promise after a .then chain', Bluebird.coroutine(function *() {
     expect(yield wrapped.then(res => res).regular_property).to.equal('value1');
   }));
+  it('returns a wrapped promise of the same type after a .then chain', () => {
+    expect(wrap(Bluebird.resolve(5)).then(res => res)._raw).to.be.an.instanceof(Bluebird);
+  });
   it('allows wrapped promises for classes to be constructed', Bluebird.coroutine(function *() {
     const Foo = class {
       constructor (a, b, c) {

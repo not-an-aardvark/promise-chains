@@ -41,13 +41,13 @@ if (typeof Proxy !== 'undefined') {
         if (typeof result === 'object' && result !== null) {
           return wrap(result[property]);
         }
-        throw new TypeError(`Promise chain rejection: Cannot read property ${property} of ${result}.`);
+        throw new TypeError(`Promise chain rejection: Cannot read property '${property}' of ${result}.`);
       }));
       return target()._promise_chain_cache[property];
     },
     apply (target, thisArg, args) {
       // If the wrapped Promise is called, return a Promise that calls the result
-      return wrap(Promise.all([target(), thisArg]).then(results => {
+      return wrap(target().constructor.all([target(), thisArg]).then(results => {
         if (typeof results[0] === 'function') {
           return wrap(results[0].apply(results[1], args));
         }
