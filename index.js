@@ -1,9 +1,19 @@
 'use strict';
-let handlers, wrap;
-if (typeof Proxy !== 'undefined') {
-  if (typeof Reflect === 'undefined') {
-    require('harmony-reflect');
+let handlers;
+
+const wrap = target => {
+  if (typeof target === 'object' && target && target.constructor.name === 'Promise' && typeof Proxy !== 'undefined') {
+    // The target needs to be stored internally as a function, so that it can use the `apply` and `construct` handlers.
+    // (At the moment, v8 actually allows non-functions to use the `apply` trap, but this goes against the ES2015 spec, and
+    // the behavior throws errors on browsers other than Chrome.)
+    target._promise_chain_cache = {};
+    return new Proxy(() => target, handlers);
   }
+  return target;
+};
+
+if (typeof Proxy !== 'undefined') {
+  require('harmony-reflect');
   handlers = {
     get (target, property) {
       if (property === 'inspect') {
@@ -16,12 +26,8 @@ if (typeof Proxy !== 'undefined') {
       // However, wrap the result of calling this function. This allows wrappedPromise.then(something) to also be wrapped.
       if (property in target()) {
         if (typeof target()[property] === 'function') {
-          return new Proxy(target()[property].bind(target()), {apply () {
-            // Relying on the `arguments` object isn't ideal, but doing something like Reflect.apply(...arguments) leaks the
-            // `arguments` object from this function and and disables v8's optimization, so using indices is the better way to
-            // handle it. When rest parameters are usable without a runtime flag, it'll be possible to replace this with
-            // `function(...args) { return wrap(Reflect.apply(...args)) }`
-            return wrap(Reflect.apply(arguments[0], arguments[1], arguments[2]));
+          return new Proxy(target()[property].bind(target()), {apply (applyTarget, args, thisArg) {
+            return wrap(Reflect.apply(applyTarget, args, thisArg));
           }});
         }
         return target()[property];
@@ -38,7 +44,7 @@ if (typeof Proxy !== 'undefined') {
       // Otherwise, return a promise for that property.
       // Store it in the cache so that subsequent references to that property will return the same promise.
       target()._promise_chain_cache[property] = wrap(target().then(result => {
-        if (typeof result === 'object' && result !== null) {
+        if (result && (typeof result === 'object' || typeof result === 'function')) {
           return wrap(result[property]);
         }
         throw new TypeError(`Promise chain rejection: Cannot read property '${property}' of ${result}.`);
@@ -49,7 +55,7 @@ if (typeof Proxy !== 'undefined') {
       // If the wrapped Promise is called, return a Promise that calls the result
       return wrap(target().constructor.all([target(), thisArg]).then(results => {
         if (typeof results[0] === 'function') {
-          return wrap(results[0].apply(results[1], args));
+          return wrap(Reflect.apply(results[0], results[1], args));
         }
         throw new TypeError(`Promise chain rejection: Attempted to call ${results[0]} which is not a function.`);
       }));
@@ -66,16 +72,5 @@ if (typeof Proxy !== 'undefined') {
     handlers[handler] = handlers[handler] || ((target, arg1, arg2, arg3) => Reflect[handler](target(), arg1, arg2, arg3));
   });
 }
-
-wrap = function (target) {
-  if (typeof target === 'object' && target && target.constructor.name === 'Promise' && typeof Proxy !== 'undefined') {
-    // The target needs to be stored internally as a function, so that it can use the `apply` and `construct` handlers.
-    // (At the moment, v8 actually allows non-functions to use the `apply` trap, but that goes against the ES2015 spec. Also,
-    // that behavior throws errors on any browser other than Chrome.)
-    target._promise_chain_cache = {};
-    return new Proxy(() => target, handlers);
-  }
-  return target;
-};
 
 module.exports = wrap;
