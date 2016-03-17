@@ -61,9 +61,7 @@ if (typeof Proxy !== 'undefined') {
       }));
     },
     construct: (target, args) => wrap(target().then(result => {
-      // Ideally this would just be `new result(...args)` or `Reflect.construct(result, args)`, but node 4 doesn't support
-      // the spread operator and harmony-reflect seems to have a bug with Reflect.construct().
-      return wrap(new (Function.prototype.bind.apply(result, [null].concat(args))));
+      return wrap(Reflect.construct(result, args));
     }))
   };
 

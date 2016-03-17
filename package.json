@@ -24,7 +24,7 @@
   },
   "homepage": "https://github.com/not-an-aardvark/promise-chains#readme",
   "dependencies": {
-    "harmony-reflect": "^1.4.2"
+    "harmony-reflect": "^1.4.3"
   },
   "devDependencies": {
     "chai": "^3.5.0",
