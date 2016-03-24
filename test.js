@@ -77,4 +77,11 @@ describe('promise-chains', () => {
     objPromise.a.push.apply(yield objPromise.a, [4, 5, 6]);
     expect(yield objPromise.a).to.eql([1, 2, 3, 4, 5, 6]);
   }));
+  it('returns a raw object if passed something other than a promise', () => {
+    const obj = {a: [1, 2, 3]};
+    expect(wrap(obj)).to.equal(obj);
+  });
+  it('resolves chained promises immediately if the wrapped promise is already resolved', () => {
+    expect(wrap(Bluebird.resolve({a: {b: 'cookies!'}})).a.b.value()).to.equal('cookies!');
+  });
 });
