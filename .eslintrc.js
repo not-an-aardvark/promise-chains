@@ -66,7 +66,6 @@ module.exports = {
     'padded-blocks': [2, 'never'],
     'prefer-arrow-callback': 2,
     'prefer-const': 1,
-    'prefer-spread': 2,
     'prefer-template': 2,
     'quote-props': [2, 'as-needed'],
     quotes: [2, 'single', 'avoid-escape'],
