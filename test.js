@@ -3,7 +3,9 @@
 const wrap = require('.');
 const expect = require('chai').use(require('dirty-chai')).expect;
 const Bluebird = require('bluebird');
+const SubPromise = class extends Promise {};
 const asyncify = Bluebird.coroutine;
+
 
 const test_object = {
   regular_property: 'value1',
@@ -84,4 +86,8 @@ describe('promise-chains', () => {
   it('resolves chained promises immediately if the wrapped promise is already resolved', () => {
     expect(wrap(Bluebird.resolve({a: {b: 'cookies!'}})).a.b.value()).to.equal('cookies!');
   });
+  it('also works with subclassed Promises', asyncify(function *() {
+    const subclassed = SubPromise.resolve(Bluebird.delay(1).return({foo: 'bar'}));
+    expect(yield wrap(subclassed).then(p => p).foo).to.equal('bar');
+  }));
 });

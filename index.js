@@ -2,7 +2,7 @@
 let handlers;
 
 const wrap = target => {
-  if (typeof target === 'object' && target && target.constructor.name === 'Promise' && typeof Proxy !== 'undefined') {
+  if (typeof target === 'object' && target && typeof target.then === 'function' && typeof Proxy !== 'undefined') {
     // The target needs to be stored internally as a function, so that it can use the `apply` and `construct` handlers.
     // (At the moment, v8 actually allows non-functions to use the `apply` trap, but this goes against the ES2015 spec, and
     // the behavior throws errors on browsers other than Chrome.)
@@ -25,11 +25,12 @@ if (typeof Proxy !== 'undefined') {
       // If the Promise itself has the property ('then', 'catch', etc.), return the property itself, bound to the target.
       // However, wrap the result of calling this function. This allows wrappedPromise.then(something) to also be wrapped.
       if (property in target()) {
-        if (property !== 'constructor' && target().constructor.prototype.hasOwnProperty(property)) {
+        if (property !== 'constructor' && typeof target()[property] === 'function') {
           return function () {
-            const args = [];
+            // Create a new Array rather than simply passing `arguments`, to avoid disabling V8 optimization
+            const args = Array(arguments.length);
             for (let i = 0; i < arguments.length; i++) {
-              args.push(arguments[i]);
+              args[i] = arguments[i];
             }
             return wrap(target()[property].apply(target(), args));
           };
