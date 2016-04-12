@@ -13,7 +13,9 @@ const wrap = target => {
 };
 
 if (typeof Proxy !== 'undefined') {
-  require('harmony-reflect');
+  if (typeof Reflect === 'undefined') {
+    require('harmony-reflect');
+  }
   handlers = {
     get (target, property) {
       if (property === 'inspect') {
