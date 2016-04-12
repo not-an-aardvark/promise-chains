@@ -27,7 +27,7 @@ if (typeof Proxy !== 'undefined') {
       // If the Promise itself has the property ('then', 'catch', etc.), return the property itself, bound to the target.
       // However, wrap the result of calling this function. This allows wrappedPromise.then(something) to also be wrapped.
       if (property in target()) {
-        if (property !== 'constructor' && typeof target()[property] === 'function') {
+        if (property !== 'constructor' && !property.startsWith('_') && typeof target()[property] === 'function') {
           return function () {
             // Create a new Array rather than simply passing `arguments`, to avoid disabling V8 optimization
             const args = Array(arguments.length);
