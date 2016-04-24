@@ -1,13 +1,15 @@
 'use strict';
-let handlers;
+var handlers;
 
-const wrap = target => {
+var wrap = function (target) {
   if (typeof target === 'object' && target && typeof target.then === 'function' && typeof Proxy !== 'undefined') {
     // The target needs to be stored internally as a function, so that it can use the `apply` and `construct` handlers.
     // (At the moment, v8 actually allows non-functions to use the `apply` trap, but this goes against the ES2015 spec, and
     // the behavior throws errors on browsers other than Chrome.)
     target._promise_chain_cache = {};
-    return new Proxy(() => target, handlers);
+    return new Proxy(function () {
+      return target;
+    }, handlers);
   }
   return target;
 };
@@ -17,9 +19,11 @@ if (typeof Proxy !== 'undefined') {
     require('harmony-reflect');
   }
   handlers = {
-    get (target, property) {
+    get: function (target, property) {
       if (property === 'inspect') {
-        return () => '[chainable Promise]';
+        return function () {
+          return '[chainable Promise]';
+        };
       }
       if (property === '_raw') {
         return target();
@@ -30,8 +34,8 @@ if (typeof Proxy !== 'undefined') {
         if (property !== 'constructor' && !property.startsWith('_') && typeof target()[property] === 'function') {
           return function () {
             // Create a new Array rather than simply passing `arguments`, to avoid disabling V8 optimization
-            const args = Array(arguments.length);
-            for (let i = 0; i < arguments.length; i++) {
+            var args = Array(arguments.length);
+            for (var i = 0; i < arguments.length; i++) {
               args[i] = arguments[i];
             }
             return wrap(target()[property].apply(target(), args));
@@ -50,31 +54,35 @@ if (typeof Proxy !== 'undefined') {
       }
       // Otherwise, return a promise for that property.
       // Store it in the cache so that subsequent references to that property will return the same promise.
-      target()._promise_chain_cache[property] = wrap(target().then(result => {
+      target()._promise_chain_cache[property] = wrap(target().then(function (result) {
         if (result && (typeof result === 'object' || typeof result === 'function')) {
           return wrap(result[property]);
         }
-        throw new TypeError(`Promise chain rejection: Cannot read property '${property}' of ${result}.`);
+        throw new TypeError("Promise chain rejection: Cannot read property '" + property + "' of " + result + '.');
       }));
       return target()._promise_chain_cache[property];
     },
-    apply (target, thisArg, args) {
+    apply: function (target, thisArg, args) {
       // If the wrapped Promise is called, return a Promise that calls the result
-      return wrap(target().constructor.all([target(), thisArg]).then(results => {
+      return wrap(target().constructor.all([target(), thisArg]).then(function (results) {
         if (typeof results[0] === 'function') {
           return wrap(Reflect.apply(results[0], results[1], args));
         }
-        throw new TypeError(`Promise chain rejection: Attempted to call ${results[0]} which is not a function.`);
+        throw new TypeError('Promise chain rejection: Attempted to call ' + results[0] + ' which is not a function.');
       }));
     },
-    construct: (target, args) => wrap(target().then(result => {
-      return wrap(Reflect.construct(result, args));
-    }))
+    construct: function (target, args) {
+      return wrap(target().then(function (result) {
+        return wrap(Reflect.construct(result, args));
+      }));
+    }
   };
 
   // Make sure all other references to the proxied object refer to the promise itself, not the function wrapping it
-  Reflect.ownKeys(Reflect).forEach(handler => {
-    handlers[handler] = handlers[handler] || ((target, arg1, arg2, arg3) => Reflect[handler](target(), arg1, arg2, arg3));
+  Reflect.ownKeys(Reflect).forEach(function (handler) {
+    handlers[handler] = handlers[handler] || function (target, arg1, arg2, arg3) {
+      return Reflect[handler](target(), arg1, arg2, arg3);
+    };
   });
 }
 
