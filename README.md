@@ -36,16 +36,24 @@ var result = wrap(example_promise).parse_somehow().do_some_other_async_operation
 // `result` is a Promise that resolves with the `foo` property the of result of both operations, parsing etc.
 ```
 
+### Important note on ES6
+
+promise-chains uses the `Proxy` object introduced in ES6. As a result, it will only work in the following runtimes:
+
+* Node 6+
+* Chrome 49+
+* Firefox 4+
+* Edge
+* Node 4 and 5 (requires the `--harmony_proxies` runtime flag to be enabled. e.g. `node --harmony_proxies yourFile.js`)
+
+### Other things to note:
+
+* If `wrap` is called on anything other than a Promise, it will just silently return that thing.
+* If a chained Promise tries to access a nonexistent property, the Promise will end up rejecting with a TypeError. (This is analogous to the `Cannot read property 'foo' of undefined` error that one would encounter when using objects normally.)
+* To "unwrap" a wrapped promise, access its `_raw` property. i.e. `wrap(some_promise)._raw === some_promise`
+
 ### To use/install:
 
 ```bash
 $ npm install promise-chains
 ```
-
-Note: `promise-chains` uses the ES2015 `Proxy` object, which is currently not included in the Node runtime by default. To use it, you will have to use Node's --harmony-proxies flag. (e.g. instead of using `node yourProject.js`, use `node --harmony-proxies yourProject.js`).
-
-Other things to note:
-
-* If `wrap` is called on anything other than a Promise, it will just silently return that thing.
-* If a chained Promise tries to access a nonexistent property, the Promise will end up rejecting with a TypeError. (This is analogous to the `Cannot read property 'foo' of undefined` error that one would encounter when using objects normally.)
-* To "unwrap" a wrapped promise, access its `_raw` property. i.e. `wrap(some_promise)._raw === some_promise`
