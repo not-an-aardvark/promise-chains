@@ -6,10 +6,11 @@ var wrap = function (target) {
     // The target needs to be stored internally as a function, so that it can use the `apply` and `construct` handlers.
     // (At the moment, v8 actually allows non-functions to use the `apply` trap, but this goes against the ES2015 spec, and
     // the behavior throws errors on browsers other than Chrome.)
-    target._promise_chain_cache = {};
-    return new Proxy(function () {
+    var targetFunc = function () {
       return target;
-    }, handlers);
+    };
+    targetFunc._promise_chain_cache = Object.create(null);
+    return new Proxy(targetFunc, handlers);
   }
   return target;
 };
@@ -44,8 +45,8 @@ if (typeof Proxy !== 'undefined') {
         return target()[property];
       }
       // If the property has a value in the cache, use that value.
-      if (target()._promise_chain_cache.hasOwnProperty(property)) {
-        return target()._promise_chain_cache[property];
+      if (Object.prototype.hasOwnProperty.call(target._promise_chain_cache, property)) {
+        return target._promise_chain_cache[property];
       }
       // If the Promise library allows synchronous inspection (bluebird, etc.), ensure that properties of resolved
       // Promises are also resolved immediately.
@@ -54,13 +55,13 @@ if (typeof Proxy !== 'undefined') {
       }
       // Otherwise, return a promise for that property.
       // Store it in the cache so that subsequent references to that property will return the same promise.
-      target()._promise_chain_cache[property] = wrap(target().then(function (result) {
+      target._promise_chain_cache[property] = wrap(target().then(function (result) {
         if (result && (typeof result === 'object' || typeof result === 'function')) {
           return wrap(result[property]);
         }
         throw new TypeError("Promise chain rejection: Cannot read property '" + property + "' of " + result + '.');
       }));
-      return target()._promise_chain_cache[property];
+      return target._promise_chain_cache[property];
     },
     apply: function (target, thisArg, args) {
       // If the wrapped Promise is called, return a Promise that calls the result
