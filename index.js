@@ -4,8 +4,6 @@ var handlers;
 var wrap = function (target) {
   if (typeof target === 'object' && target && typeof target.then === 'function' && typeof Proxy !== 'undefined') {
     // The target needs to be stored internally as a function, so that it can use the `apply` and `construct` handlers.
-    // (At the moment, v8 actually allows non-functions to use the `apply` trap, but this goes against the ES2015 spec, and
-    // the behavior throws errors on browsers other than Chrome.)
     var targetFunc = function () {
       return target;
     };
