@@ -27,17 +27,15 @@ if (typeof Proxy !== 'undefined') {
       if (property === '_raw') {
         return target();
       }
+      if (typeof property === 'symbol') {
+        return target()[property];
+      }
       // If the Promise itself has the property ('then', 'catch', etc.), return the property itself, bound to the target.
       // However, wrap the result of calling this function. This allows wrappedPromise.then(something) to also be wrapped.
       if (property in target()) {
         if (property !== 'constructor' && !property.startsWith('_') && typeof target()[property] === 'function') {
           return function () {
-            // Create a new Array rather than simply passing `arguments`, to avoid disabling V8 optimization
-            var args = Array(arguments.length);
-            for (var i = 0; i < arguments.length; i++) {
-              args[i] = arguments[i];
-            }
-            return wrap(target()[property].apply(target(), args));
+            return wrap(target()[property].apply(target(), arguments));
           };
         }
         return target()[property];
@@ -78,7 +76,7 @@ if (typeof Proxy !== 'undefined') {
   };
 
   // Make sure all other references to the proxied object refer to the promise itself, not the function wrapping it
-  Reflect.ownKeys(Reflect).forEach(function (handler) {
+  Object.getOwnPropertyNames(Reflect).forEach(function (handler) {
     handlers[handler] = handlers[handler] || function (target, arg1, arg2, arg3) {
       return Reflect[handler](target(), arg1, arg2, arg3);
     };

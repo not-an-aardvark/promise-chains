@@ -97,4 +97,10 @@ describe('promise-chains', () => {
     const bar = new Bar();
     expect(yield wrap(Promise.resolve(bar)).prototypeProperty).to.equal(5);
   }));
+  it('does not return promises for symbol properties', asyncFn(function *() {
+    const foo = wrap(Promise.resolve([]));
+    expect([1, 2, 3].concat(foo)).to.eql([1, 2, 3, foo]);
+    expect(foo[Symbol.iterator]).to.be.undefined();
+    expect(yield foo.then(value => value[Symbol.iterator])).to.equal(Array.prototype[Symbol.iterator]);
+  }));
 });
