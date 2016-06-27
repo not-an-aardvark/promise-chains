@@ -42,7 +42,7 @@ promise-chains uses the `Proxy` object introduced in ES6. As a result, it will o
 
 * Node 6+
 * Chrome 49+
-* Firefox 4+
+* Firefox 18+
 * Edge
 * Node 4 and 5 (requires the `--harmony_proxies` runtime flag to be enabled. e.g. `node --harmony_proxies yourFile.js`)
 
